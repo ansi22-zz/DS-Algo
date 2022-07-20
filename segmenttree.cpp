@@ -22,34 +22,61 @@ using namespace std;
 // const int mod=1e9+7;
 // const int inf=2e18;
 const int max_sz=4*1e5;
-int a[max_sz],seg[max_sz];
+int A[max_sz],tree[max_sz];
 
-// funtion to build segment tree
-void build(int ind,int low,int high){
-     // we are stopping when low=high
-     if(low==high){
-          seg[ind]=a[low];
-          return;
-     }
-     int mid=(low+high)/2;
-     build(2*ind,low,mid);
-     build(2*ind+2,mid+1,high);
-     seg[ind]=max(seg[2*ind+1],seg[2*ind+2]);
+void build(int node, int start, int end){
+    if(start == end){
+        // Leaf node will have a single element
+        tree[node] = A[start];
+    }
+    else{
+        int mid = (start + end) / 2;
+        // Recurse on the left child
+        build(2*node, start, mid);
+        // Recurse on the right child
+        build(2*node+1, mid+1, end);
+        // Internal node will have the sum of both of its children
+        tree[node] = tree[2*node] + tree[2*node+1];
+    }
 }
 
+void update(int node, int start, int end, int idx, int val) {
+    if(start == end) {
+        // Leaf node
+        A[idx] += val;
+        tree[node] += val;
+    }
+    else {
+        int mid = (start + end) / 2;
+        if(start <= idx and idx <= mid) {
+            // If idx is in the left child, recurse on the left child
+            update(2*node, start, mid, idx, val);
+        }
+        else {
+            // if idx is in the right child, recurse on the right child
+            update(2*node+1, mid+1, end, idx, val);
+        }
+        // Internal node will have the sum of both of its children
+        tree[node] = tree[2*node] + tree[2*node+1];
+    }
+}
+
+
 //query
-int query(int ind,int low,int high,int l,int r){
-     if(low>=l&&high<=r){
-          return seg[ind];
-     }
-     if(high<l || low>r){
-          return INT_MIN;
-     }
-     // overlaps condition
-     int mid=(low+high)/2;
-     int left=query(2*ind+1,low,mid,l,r);
-     int right=query(2*ind+2,mid+1,high,l,r);
-     return max(left,right);
+int query(int node, int start, int end, int l, int r){
+    if(r < start or end < l) {
+        // range represented by a node is completely outside the given range
+        return 0;
+    }
+    if(l <= start and end <= r) {
+        // range represented by a node is completely inside the given range
+        return tree[node];
+    }
+    // range represented by a node is partially inside and partially outside the given range
+    int mid = (start + end) / 2;
+    int p1 = query(2*node, start, mid, l, r);
+    int p2 = query(2*node+1, mid+1, end, l, r);
+    return (p1 + p2);
 }
 
 void solve(){
@@ -57,7 +84,7 @@ void solve(){
      cin>>n;
      
      for(int i=0;i<n;i++)
-          cin>>a[i];
+          cin>>A[i];
      // start building from root
      // build(root,startind,endind)
      build(0,0,n-1);
@@ -84,7 +111,7 @@ int32_t main(){
      cin.tie(NULL);
 
      int t=1;
-     cin>>t;
+     // cin>>t;
      // pre();
      for(int tc=1;tc<=t;tc++)
      solve();
