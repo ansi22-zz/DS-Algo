@@ -58,7 +58,7 @@ int32_t main(){
 
      int t=1;
      cin>>t;
-     // pre();
+    
      for(int tc=1;tc<=t;tc++)
      solve();
      return 0;
